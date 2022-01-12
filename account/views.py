@@ -4,14 +4,14 @@ from .forms import UserForm, ProfileForm
 from django.contrib.auth.models import User
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db import transaction
 from random import choice
 from .models import Profile
 from django.db.models import F
 
 CHOICE = ['r', 'p', 's']
+COUNT = 0
 
-
+@login_required(login_url='login/')
 def rps(request):
     return render(request, 'account/rps.html')
 
@@ -27,7 +27,10 @@ def lost():
 def tied():
     Profile.objects.update(ties=F('ties') + 1)
 
+@login_required(login_url='login/')
 def rps_play(request):
+    global COUNT
+    COUNT += 1
     if request.method == 'POST':
 
         pc_choice = choice(CHOICE)
@@ -64,9 +67,27 @@ def rps_play(request):
             elif pc_choice == 's':
                 tied()
                 request.session['response'] = "It's a tie! Computer chose scissors as well."
+        
 
         elif request.POST['option'] != CHOICE:
             request.session['response'] = "Please select one of the following choices: \'r\' \'p\' \'s\'"
+        print(str(request.user),'=================================',type(request.user), str(request.user))
+        if COUNT % 3 == 0 and str(request.user) != 'AnonymousUser':
+            request.session['response'] = ''
+            
+            obj = Profile.objects.get(user=request.user)
+            if obj.wins == obj.loses:
+                request.session['result'] = 'Result of 3 Round is Tiee !!!'
+            elif obj.wins > obj.loses:
+                request.session['result'] = 'Result of 3 Round is, You are Winner!!!'
+            elif obj.wins < obj.loses:
+                request.session['result'] = 'Result of 3 Round is, You are Loser!!!'
+            obj.wins = 0
+            obj.loses = 0
+            obj.ties = 0
+            obj.save()
+        else:
+            request.session['result'] = ''
 
         return redirect('/')
     else:
@@ -77,15 +98,19 @@ def rps_play(request):
 def signup(request):
     if request.method == 'POST':
         form = UserForm(request.POST)
+        
         if form.is_valid():
             user = form.save()
-            user.refresh_from_db()  # load the profile instance created by the signal
-            user.profile.birth_date = form.cleaned_data.get('birth_date')
             user.save()
             raw_password = form.cleaned_data.get('password1')
             user = authenticate(username=user.username, password=raw_password)
             login(request, user)
+            Profile(user = request.user).save()
             return redirect('/')
     else:
         form = UserForm()
     return render(request, 'account/reg_form.html', {'form': form})
+
+def index(request):
+    print('=============index===================')
+    return render(request, 'personal/home.html')

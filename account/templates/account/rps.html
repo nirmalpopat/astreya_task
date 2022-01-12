@@ -1,0 +1,29 @@
+<link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/lumen/bootstrap.min.css">
+
+
+{% extends "personal/header.html" %} {% block content %}
+<form class="w3-container w3-card-4" action="/rps_play" method="POST" novalidate>
+    {% csrf_token %}
+ <h1 class="w3-text-teal">Rock Paper or Scissors?</h1>
+
+  <select class="w3-select" name="option">
+    <option value="r">Rock</option>
+    <option value="p">Paper</option>
+    <option value="s">Scissors</option>
+  </select>
+
+  <p>   <br /><button type="submit" class="w3-btn w3-red">Battle</button><br /><br />{{request.session.response}}</p>
+  <h1>{{request.session.result}}</h1>
+</form>
+<br />
+
+{% if request.user.username %}
+
+<ul class="w3-ul w3-small">
+    <li>Wins: {{ user.profile.wins }}</li>
+    <li>Loses: {{ user.profile.loses }}</li>
+    <li>Ties: {{ user.profile.ties }}</li>
+</ul>
+{% else %}<a href="/login">Login</a> or <a href="/register">register</a> to keep track of your results!{% endif %}
+</div>
+{% endblock %}

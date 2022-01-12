@@ -1,0 +1,16 @@
+<link rel="stylesheet" type="text/css" href="https://bootswatch.com/3/lumen/bootstrap.min.css">
+
+{% extends "personal/header.html" %} 
+{% load crispy_forms_tags %} 
+{% block content %}
+<h1 class="w3-text-teal">Register</h1>
+<br>
+<div class="row">
+    <div class="col-sm-10 col-md-5">
+        <form method="post" novalidate>
+            {% csrf_token %} {{ form|crispy }} {{ profile_form|crispy }}
+            <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+    </div>
+</div>
+{% endblock %}
